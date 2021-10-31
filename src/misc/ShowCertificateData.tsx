@@ -1,7 +1,9 @@
-import { EUDCC1, RecoveryEntry, TestEntry, VaccinationEntry } from '../../generated-files/dgc-combined-schema'
+import { EUDCC1, RecoveryEntry, TestEntry, VaccinationEntry } from '../generated-files/dgc-combined-schema'
 import i18n from 'i18next'
-import { getValueSetDisplay, Value_Sets } from '../../misc/useValueSet';
-import utils from '../../misc/utils';
+import { IValueSet } from '../api';
+import moment from 'moment';
+import utils from './utils';
+import { useGetDiseaseAgents, useGetVaccineManufacturers, useGetVaccines, useGetVaccinMedicalData, useGetTestManufacturers, useGetTestResult, useGetTestType } from '../api';
 import React from 'react';
 import { Card } from 'react-bootstrap';
 
@@ -20,14 +22,13 @@ export const ShowCertificateData = (props: any) => {
 
     const defaultString = '';
 
-    const countryCodeValueSet = props.valueSetList[Value_Sets.CountryCodes];
-    const vacMedsData = props.valueSetList[Value_Sets.Vaccines];
-    const diseaseAgentsData = props.valueSetList[Value_Sets.DiseaseAgent];
-    const vaccineManufacturers = props.valueSetList[Value_Sets.VaccinesManufacturer];
-    const vaccines = props.valueSetList[Value_Sets.VaccineType];
-    const testManufacturersValueSet = props.valueSetList[Value_Sets.TestManufacturer];
-    const testResultValueSet = props.valueSetList[Value_Sets.TestResult];
-    const testTypeValueSet = props.valueSetList[Value_Sets.TestType];
+    const vacMedsData = useGetVaccinMedicalData();
+    const diseaseAgentsData = useGetDiseaseAgents();
+    const vaccineManufacturers = useGetVaccineManufacturers();
+    const vaccines = useGetVaccines();
+    const testManufacturersValueSet = useGetTestManufacturers();
+    const testResultValueSet = useGetTestResult();
+    const testTypeValueSet = useGetTestType();
 
     const [eudgc, setEudgc] = React.useState<EUDCC1>();
     const [vaccinationSet, setVaccinationSet] = React.useState<VaccinationEntry>();
@@ -45,10 +46,10 @@ export const ShowCertificateData = (props: any) => {
 
     React.useEffect(() => {
         if (eudgc) {
-            const vacc: [VaccinationEntry] = eudgc.v as [VaccinationEntry];
-            const test: [TestEntry] = eudgc.t as [TestEntry];
+            const vacc : [VaccinationEntry] = eudgc.v as [VaccinationEntry];
+            const test : [TestEntry] = eudgc.t as [TestEntry];
             const recovery: [RecoveryEntry] = eudgc.r as [RecoveryEntry];
-
+            
             setVaccinationSet(vacc ? vacc[0] : undefined);
             setTestSet(test ? test[0] : undefined);
             setRecoverySet(recovery ? recovery[0] : undefined);
@@ -115,7 +116,7 @@ export const ShowCertificateData = (props: any) => {
             {
                 title: i18n.t('translation:certificate-data'),
                 entries: [
-                    { label: i18n.t('translation:vac-country'), data: getValueSetDisplay(vaccinationSet?.co, countryCodeValueSet) || defaultString },
+                    { label: i18n.t('translation:vac-country'), data: vaccinationSet?.co || defaultString },
                     { label: i18n.t('translation:adm'), data: vaccinationSet?.is || defaultString }
                 ]
             }
@@ -136,7 +137,7 @@ export const ShowCertificateData = (props: any) => {
             {
                 title: i18n.t('translation:test-data'),
                 entries: [
-                    { label: i18n.t('translation:sampleDateTime'), data: utils.convertDateToOutputFormat(testSet?.sc || '') },
+                    { label: i18n.t('translation:sampleDateTime'), data: convertDateToOutputFormat(testSet?.sc || '') },
                     // { label: i18n.t('translation:testDateTime'), data: convertDateToOutputFormat(testSet?.dr || defaultString) },
                     { label: i18n.t('translation:testResult'), data: getValueSetDisplay(testSet?.tr, testResultValueSet) || defaultString },
                     { label: i18n.t('translation:testCenter'), data: testSet?.tc || defaultString }
@@ -145,7 +146,7 @@ export const ShowCertificateData = (props: any) => {
             {
                 title: i18n.t('translation:certificate-data'),
                 entries: [
-                    { label: i18n.t('translation:vac-country'), data: getValueSetDisplay(testSet?.co, countryCodeValueSet) || defaultString },
+                    { label: i18n.t('translation:vac-country'), data: testSet?.co || defaultString },
                     { label: i18n.t('translation:adm'), data: testSet?.is || defaultString }
                 ]
             }
@@ -160,7 +161,7 @@ export const ShowCertificateData = (props: any) => {
                 entries: [
                     { label: i18n.t('translation:disease-agent'), data: getValueSetDisplay(recoverySet?.tg, diseaseAgentsData) || defaultString },
                     { label: i18n.t('translation:first-positive-test-date'), data: recoverySet?.fr || defaultString },
-                    { label: i18n.t('translation:recovery-country'), data: getValueSetDisplay(recoverySet?.co, countryCodeValueSet) || defaultString },
+                    { label: i18n.t('translation:recovery-country'), data: recoverySet?.co || defaultString },
                 ]
             },
             {
@@ -199,3 +200,15 @@ export const ShowCertificateData = (props: any) => {
 }
 
 export default ShowCertificateData
+
+export const convertDateToOutputFormat = (dateString?: string): string => dateString ? moment(dateString, 'YYYY-MM-DDTHH:mm:ss.sssZ').format(utils.momentDateTimeFormat).toString() : '';
+
+// returns display value for key 
+export const getValueSetDisplay = (key: string | undefined, valueSet: IValueSet | undefined): string | undefined => {
+    let result = key;
+
+    if (valueSet && key && valueSet[key]) {
+        result = valueSet[key].display;
+    }
+    return result;
+}

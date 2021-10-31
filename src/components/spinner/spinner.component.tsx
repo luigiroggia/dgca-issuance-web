@@ -19,22 +19,12 @@
  * under the License.
  */
 
-import React from 'react';
 import './spinner.component.scss';
 
 const Spinner = (props: any) => {
 
-    const [bg, setBg] = React.useState('#fff');
-
-    React.useEffect(() => {
-        if (props.background) {
-            setBg(props.background)
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
-
     return (
-        <div className={'loader'} style={{ background: bg }}>Loading...</div>
+        <div className={'loader'}>Loading...</div>
     )
 }
 

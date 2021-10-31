@@ -24,21 +24,20 @@ import { Button, Container, Fade } from 'react-bootstrap'
 import '../i18n';
 import { useTranslation } from 'react-i18next';
 
+import useNavigation from '../misc/navigation';
 import React from 'react';
 import Spinner from './spinner/spinner.component';
-import AppContext from '../misc/appContext';
 
-const LandingPage = () => {
+const LandingPage = (props: any) => {
 
-    const context = React.useContext(AppContext);
+    const navigation = useNavigation();
     const { t } = useTranslation();
-
     const [isInit, setIsInit] = React.useState(false)
 
     React.useEffect(() => {
-        if (context.navigation)
+        if (navigation)
             setIsInit(true);
-    }, [context.navigation])
+    }, [navigation])
 
     return (!isInit ? <Spinner /> :
         <Fade appear={true} in={true} >
@@ -49,8 +48,16 @@ const LandingPage = () => {
                 <Button block className='landing-btn my-2' onClick={context.navigation!.toRecordTest}>{t('translation:record-test-cert-dat')}</Button>
                 <Button block className='landing-btn my-2' onClick={context.navigation!.toRecordRecovery}>{t('translation:record-recovery-cert-dat')}</Button>
 
+<<<<<<< HEAD
             </Container>
         </Fade>
+=======
+            <Button block className='landing-btn my-2' onClick={navigation!.toRecordVac}>{t('translation:record-vaccination-cert-dat')}</Button>
+            <Button block className='landing-btn my-2' onClick={navigation!.toRecordTest}>{t('translation:record-test-cert-dat')}</Button>
+            <Button block className='landing-btn my-2' onClick={navigation!.toRecordRecovery}>{t('translation:record-recovery-cert-dat')}</Button>
+
+        </Container>
+>>>>>>> parent of c8fe6bf (Feat/valueset from service (#102))
     )
 }
 

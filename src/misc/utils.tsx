@@ -19,18 +19,6 @@
  * under the License.
  */
 
-import moment from "moment";
-
-export interface IUtils {
-    pattern: { [key: string]: string }
-    isStandardisedNameValid: (value: string) => boolean,
-    pickerDateFormat: string,
-    pickerDateTimeFormat: string,
-    momentDateFormat: string,
-    momentDateTimeFormat: string,
-    convertDateToOutputFormat: (dateString?: string) => string
-}
-
 const pattern = {
     sequence: '^([1-9]{1,6})',
     tot: '^([1-9]{1,2})',
@@ -39,16 +27,13 @@ const pattern = {
 
 const standardisedNameRegExp = new RegExp(pattern.standardisedName);
 
-const convertDateToOutputFormat = (dateString?: string): string => dateString ? moment(dateString).format(utils.momentDateTimeFormat).toString() : '';
-
-const utils: IUtils = {
+const utils = {
     pattern: pattern,
     isStandardisedNameValid: (value: string) => standardisedNameRegExp.test(value),
     pickerDateFormat: 'yyyy-MM-dd',
     pickerDateTimeFormat: 'yyyy-MM-dd / hh:mm a',
     momentDateFormat: 'yyyy-MM-DD',
-    momentDateTimeFormat: 'yyyy-MM-DD / hh:mm A',
-    convertDateToOutputFormat: convertDateToOutputFormat
+    momentDateTimeFormat: 'yyyy-MM-DD / hh:mm A'
 }
 
 export default utils;

@@ -19,30 +19,13 @@
  * under the License.
  */
 
-import React from 'react';
-import ReactDOM from 'react-dom';
-import { BrowserRouter } from 'react-router-dom'
+import Routing from './routing.component';
 
-import './assets/SCSS/index.scss';
-import './assets/SCSS/custom.scss';
+const Root = (props: any) => {
 
-import reportWebVitals from './reportWebVitals';
+  return (
+    <Routing />
+  );
+}
 
-import Root from './root.component';
-
-
-ReactDOM.render(
-  <React.StrictMode>
-    <BrowserRouter >
-      <Root />
-    </BrowserRouter>
-    
-  </React.StrictMode>,
-
-  document.getElementById('root')
-);
-
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();
+export default Root;

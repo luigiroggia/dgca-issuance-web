@@ -25,22 +25,22 @@ import { Button, Card, Col, Container, Fade, Row } from 'react-bootstrap'
 import '../i18n';
 import { useTranslation } from 'react-i18next';
 
+import useNavigation from '../misc/navigation';
+
 import QRCode from 'qrcode.react';
 
 import Spinner from './spinner/spinner.component';
 import { EUDCC1 } from '../generated-files/dgc-combined-schema';
 import genEDGCQR, { CertResult } from '../misc/edgcQRGenerator';
 
-import ShowCertificateData from './modules/show-certificate-data.component';
-import usePdfGenerator from '../misc/usePdfGenerator';
-import AppContext from '../misc/appContext';
-import { IValueSetList } from '../misc/useValueSet';
+import ShowCertificateData from '../misc/ShowCertificateData';
+import usePdfGenerator from './pdf-generater.component';
 
 // import { usePostPatient } from '../api';
 
 const ShowCertificate = (props: any) => {
 
-    const context = React.useContext(AppContext);
+    const navigation = useNavigation();
     const { t } = useTranslation();
 
     const [isInit, setIsInit] = React.useState(false)
@@ -53,10 +53,14 @@ const ShowCertificate = (props: any) => {
 
     const [qrCodeForPDF, setQrCodeForPDF] = React.useState<any>();
     const [eudgcForPDF, setEudgcForPDF] = React.useState<EUDCC1>();
+<<<<<<< HEAD
     const [valueSetsForPDF, setValueSetsForPDF] = React.useState<IValueSetList>();
     const [issuerCountryCodeForPDF, setIssuerCountryCodeForPDF] = React.useState('');
 
     const pdf = usePdfGenerator(qrCodeForPDF, eudgcForPDF, valueSetsForPDF, issuerCountryCodeForPDF, (isInit) => setPdfIsInit(isInit), (isReady) => setPdfIsReady(isReady));
+=======
+    const pdf = usePdfGenerator(qrCodeForPDF, eudgcForPDF, (isInit) => setPdfIsInit(isInit), (isReady) => setPdfIsReady(isReady));
+>>>>>>> parent of c8fe6bf (Feat/valueset from service (#102))
 
     // set patient data on mount and set hash from uuid
     React.useEffect(() => {
@@ -65,7 +69,7 @@ const ShowCertificate = (props: any) => {
                 setEudgc(props.eudgc)
             }
             else
-                props.setError({ error: '', message: t('translation:error-patient-data-load'), onCancel: context.navigation!.toLanding });
+                props.setError({ error: '', message: t('translation:error-patient-data-load'), onCancel: navigation!.toLanding });
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isInit])
@@ -88,6 +92,14 @@ const ShowCertificate = (props: any) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [eudgc])
 
+
+    // set ready state for spinner
+    React.useEffect(() => {
+        if (navigation) {
+            setTimeout(setIsInit, 200, true);
+        }
+    }, [navigation]);
+
     React.useEffect(() => {
         if (pdf) {
             handleShowPdf();
@@ -95,15 +107,9 @@ const ShowCertificate = (props: any) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pdfIsReady]);
 
-    React.useEffect(() => {
-        if (context.navigation && context.valueSets)
-            setIsInit(true);
-        setValueSetsForPDF(context.valueSets);
-    }, [context.navigation, context.valueSets])
-
     const finishProcess = () => {
         props.setEudgc(undefined);
-        context.navigation!.toLanding();
+        navigation!.toLanding();
     }
 
     const handleError = (error: any) => {
@@ -112,23 +118,23 @@ const ShowCertificate = (props: any) => {
         if (error) {
             msg = error.message
         }
-        props.setError({ error: error, message: msg, onCancel: context.navigation!.toLanding });
+        props.setError({ error: error, message: msg, onCancel: navigation!.toLanding });
     }
 
     const handleBack = () => {
         if (eudgc) {
             if (eudgc.v) {
-                context.navigation!.toRecordVac();
+                navigation!.toRecordVac();
             }
             if (eudgc.t) {
-                context.navigation!.toRecordTest();
+                navigation!.toRecordTest();
             }
             if (eudgc.r) {
-                context.navigation!.toRecordRecovery();
+                navigation!.toRecordRecovery();
             }
         }
         else {
-            context.navigation!.toLanding();
+            navigation!.toLanding();
         }
     }
 
@@ -146,8 +152,9 @@ const ShowCertificate = (props: any) => {
     }
 
     return (
-        !(isInit && context.valueSets && eudgc && qrCodeValue) ? <Spinner /> :
+        !(isInit && eudgc && qrCodeValue) ? <Spinner /> :
             <>
+<<<<<<< HEAD
                 <Fade appear={true} in={true} >
                     <Card id='data-card'>
                         {/*    content area with patient inputs and check box    */}
@@ -225,6 +232,83 @@ const ShowCertificate = (props: any) => {
                         </Card.Footer>
                     </Card>
                 </Fade>
+=======
+                <Card id='data-card'>
+                    {/*    content area with patient inputs and check box    */}
+                    <Card.Header id='data-header' className='p-3'>
+                        <Row>
+                            <Col md='6' className='pl-0'>
+                                <Card.Title className='m-md-0 tac-xs-tal-md jcc-xs-jcfs-md' as={'h3'} >{t('translation:your-certificate')}</Card.Title>
+                            </Col>
+                        </Row>
+                    </Card.Header>
+                    <Card.Body id='data-body' className='p-3'>
+                        <Row>
+                            <Col sm='6' className='p-3'>
+
+                                <ShowCertificateData eudgc={eudgc} />
+
+                            </Col>
+                            <Col sm='6' className='p-3'>
+                                <Container id='qr-code-container'>
+                                    {qrCodeValue ? <><QRCode id='qr-code' size={256} renderAs='svg' value={qrCodeValue} />
+                                        {/* <Card.Text className='input-label' >{qrCodeValue}</Card.Text> */}
+                                    </> : <></>}
+                                </Container>
+                                <Container id='qr-code-container' className='hidden'>
+                                    {qrCodeValue ? <> <QRCode id='qr-code-pdf' size={256} renderAs='canvas' value={qrCodeValue} />
+                                    </> : <></>}
+                                </Container>
+                                <Card.Text className='input-label jcc-xs-sm m-3 text-center' >TAN: {tan}</Card.Text>
+                            </Col>
+                        </Row>
+                    </Card.Body>
+
+                    {/*    footer with correction and finish button    */}
+                    <Card.Footer id='data-footer'>
+                        <Row>
+                            <Col xs='12' md='4' className='pl-md-0 pr-md-2 pb-3 pb-md-0'>
+                                <Button
+                                    className=''
+                                    variant='outline-primary'
+                                    block
+                                    onClick={handleBack}
+                                >
+                                    {t('translation:patient-data-correction')}
+                                </Button>
+                            </Col>
+                            <Col xs='6' md='4' className='px-md-2 pr-2'>
+                                <Button
+                                    className=''
+                                    block
+                                    onClick={handleGeneratePdf}
+                                    disabled={!pdfIsInit}
+                                    hidden={pdfIsReady}
+                                >
+                                    {t('translation:generate-pdf')}
+                                </Button>
+                                <Button
+                                    className='m-0'
+                                    block
+                                    onClick={handleShowPdf}
+                                    hidden={!pdfIsReady}
+                                >
+                                    {t('translation:show-pdf')}
+                                </Button>
+                            </Col>
+                            <Col xs='6' md='4' className='pr-md-0 pl-2'>
+                                <Button
+                                    className=''
+                                    block
+                                    onClick={finishProcess}
+                                >
+                                    {t('translation:process-finish')}
+                                </Button>
+                            </Col>
+                        </Row>
+                    </Card.Footer>
+                </Card>
+>>>>>>> parent of c8fe6bf (Feat/valueset from service (#102))
             </>
 
     )

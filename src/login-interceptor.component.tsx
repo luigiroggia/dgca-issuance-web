@@ -20,29 +20,35 @@
  */
 
 import React from 'react';
-import ReactDOM from 'react-dom';
-import { BrowserRouter } from 'react-router-dom'
 
-import './assets/SCSS/index.scss';
-import './assets/SCSS/custom.scss';
+import { useKeycloak } from '@react-keycloak/web';
 
-import reportWebVitals from './reportWebVitals';
-
-import Root from './root.component';
+import Spinner from './components/spinner/spinner.component';
 
 
-ReactDOM.render(
-  <React.StrictMode>
-    <BrowserRouter >
-      <Root />
-    </BrowserRouter>
-    
-  </React.StrictMode>,
+const LoginInterceptor = (props: any) => {
+  
+  const { keycloak, initialized } = useKeycloak();
 
-  document.getElementById('root')
-);
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();
+  // on init change
+  React.useEffect(() => {
+
+    if (keycloak && initialized && !keycloak.authenticated) {
+      keycloak.login();
+    }
+
+  }, [initialized, keycloak, keycloak.authenticated]);
+
+  return (
+    <>
+      {
+        initialized && keycloak.authenticated
+          ? props.children
+          : <Spinner
+          />}
+    </>
+  );
+}
+
+export default LoginInterceptor;

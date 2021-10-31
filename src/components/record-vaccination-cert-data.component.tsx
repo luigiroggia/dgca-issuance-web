@@ -24,29 +24,29 @@ import { Card, Col, Fade, Form, Row } from 'react-bootstrap';
 
 import '../i18n';
 import { useTranslation } from 'react-i18next';
-import useLocalStorage from '../misc/useLocalStorage';
+import useLocalStorage from '../misc/local-storage';
 
+import useNavigation from '../misc/navigation';
 import Spinner from './spinner/spinner.component';
 
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
 import { EUDCC1, VaccinationEntry } from '../generated-files/dgc-combined-schema';
-import { Value_Sets } from '../misc/useValueSet';
+import { useGetDiseaseAgents, useGetVaccineManufacturers, useGetVaccines, useGetVaccinMedicalData } from '../api';
 
 import schema from '../generated-files/DGC.combined-schema.json';
 import { Validator } from 'jsonschema';
 import CardHeader from './modules/card-header.component';
-import { PersonInputs, IPersonData, FormGroupInput, FormGroupValueSetSelect } from './modules/form-group.component';
+import { PersonInputs, IPersonData, FormGroupInput, FormGroupValueSetSelect, FormGroupISOCountrySelect } from './modules/form-group.component';
 import CardFooter from './modules/card-footer.component';
 import moment from 'moment';
-import AppContext from '../misc/appContext';
 
 const validator = new Validator();
 
 const RecordVaccinationCertData = (props: any) => {
 
-    const context = React.useContext(AppContext);
+    const navigation = useNavigation();
     const { t } = useTranslation();
 
     const [isInit, setIsInit] = React.useState(false)
@@ -63,6 +63,7 @@ const RecordVaccinationCertData = (props: any) => {
     const [vacLastDate, setVacLastDate] = React.useState<Date>(new Date());
     const [certificateIssuer, setCertificateIssuer] = useLocalStorage('certificateIssuer', '');
     const [issuerCountryCode, setIssuerCountryCode] = useLocalStorage('issuerCountryCode', '');
+
 
     React.useEffect(() => {
         if (!props.eudgc || !props.eudgc.v || !props.eudgc.v[0]) {
@@ -84,11 +85,12 @@ const RecordVaccinationCertData = (props: any) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.eudgc]);
 
-    React.useEffect(() => {
-        if (context.navigation && context.valueSets)
-            setIsInit(true);
-    }, [context.navigation, context.valueSets])
 
+    React.useEffect(() => {
+        if (navigation) {
+            setTimeout(setIsInit, 200, true);
+        }
+    }, [navigation]);
 
     const handleVacLastDate = (evt: Date | [Date, Date] | null) => {
         const date = handleDateChange(evt);
@@ -120,7 +122,7 @@ const RecordVaccinationCertData = (props: any) => {
 
     const handleCancel = () => {
         props.setEudgc(undefined);
-        context.navigation?.toLanding();
+        navigation?.toLanding();
     }
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -159,21 +161,28 @@ const RecordVaccinationCertData = (props: any) => {
                 v: [vacc]
             }
 
+            // console.log(JSON.stringify(eudgc));
+            // let vac = eudgc.v[0];
+            // console.log(vac);
+            // console.log(vac.tg);
+
             var result = validator.validate(eudgc, schema);
 
             if (result.valid) {
+                // console.log(JSON.stringify(eudgc));
+
                 props.setEudgc(eudgc);
-                setTimeout(context.navigation!.toShowCert, 200);
+                setTimeout(navigation!.toShowCert, 200);
             }
             else {
                 console.error(result);
-                props.setError({ error: result, message: result.errors[0].message, onCancel: context.navigation!.toLanding });
+                props.setError({ error: result, message: result.errors[0].message, onCancel: navigation!.toLanding });
             }
         }
     }
 
     return (
-        !(isInit && context && context.valueSets) ? <Spinner /> :
+        !isInit ? <Spinner /> :
             <>
                 <Fade appear={true} in={true} >
                     <Card id='data-card'>
@@ -188,6 +197,7 @@ const RecordVaccinationCertData = (props: any) => {
                             {/*
                             content area with patient inputs and check box
                         */}
+<<<<<<< HEAD
                             <Card.Body id='data-body'>
 
                                 {/* name inputs */}
@@ -288,6 +298,108 @@ const RecordVaccinationCertData = (props: any) => {
                             </Card.Body>
 
                             {/*
+=======
+                        <Card.Body id='data-body' className='p-3'>
+
+                            {/* name inputs */}
+                            <PersonInputs eudgc={props.eudgc} onChange={setPerson} />
+
+                            <hr />
+
+                            {/* combobox disease */}
+                            <FormGroupValueSetSelect controlId='formDiseaseInput' title={t('translation:disease-agent')} placeholder={t('translation:def-disease-agent')}
+                                value={disease}
+                                onChange={(evt: any) => setDisease(evt.target.value)}
+                                required
+                                valueSet={useGetDiseaseAgents}
+                            />
+
+                            {/* combobox vaccine */}
+                            <FormGroupValueSetSelect controlId='formVaccineInput' title={t('translation:vaccine')}
+                                value={vaccine}
+                                onChange={(evt: any) => setVaccine(evt.target.value)}
+                                required
+                                valueSet={useGetVaccines}
+                            />
+
+                            {/* combobox medicalProduct */}
+                            <FormGroupValueSetSelect controlId='formMedicalProductInput' title={t('translation:vac-medical-product')}
+                                value={medicalProduct}
+                                onChange={(evt: any) => setMedicalProduct(evt.target.value)}
+                                required
+                                valueSet={useGetVaccinMedicalData}
+                            />
+
+                            {/* combobox marketingHolder */}
+                            <FormGroupValueSetSelect controlId='formMarketingHolderInput' title={t('translation:vac-marketing-holder')}
+                                value={marketingHolder}
+                                onChange={(evt: any) => setMarketingHolder(evt.target.value)}
+                                required
+                                valueSet={useGetVaccineManufacturers}
+                            />
+
+                            <hr />
+
+                            {/* sequence */}
+                            <FormGroupInput controlId='formDoseNumberInput' title={t('translation:sequence')} placeholder={t('translation:def-sequence')}
+                                value={doseNumber}
+                                onChange={(evt: any) => handleNumber(evt.target.value, setDoseNumber)}
+                                required min={1} max={9} maxLength={1}
+                                type='number'
+                            />
+
+                            {/* tot */}
+                            <FormGroupInput controlId='formTotInput' title={t('translation:tot')} placeholder={t('translation:def-tot')}
+                                value={totalDoseNumber}
+                                onChange={(evt: any) => handleNumber(evt.target.value, setTotalDoseNumber)}
+                                required min={1} max={9} maxLength={1}
+                                type='number'
+                            />
+
+                            {/* vacLastDate */}
+                            <Form.Group as={Row} controlId='formLastDateInput' className='pb-3 mb-0'>
+                                <Form.Label className='input-label ' column xs='5' sm='3'>{t('translation:vac-last-date') + '*'}</Form.Label>
+
+                                <Col xs='7' sm='9' className='d-flex'>
+                                    <DatePicker
+                                        selected={vacLastDate}
+                                        onChange={handleVacLastDate}
+                                        dateFormat='yyyy-MM-dd'
+                                        isClearable
+                                        placeholderText={t('translation:vac-last-date')}
+                                        className='qt-input form-control'
+                                        wrapperClassName='align-self-center'
+                                        showMonthDropdown
+                                        showYearDropdown
+                                        dropdownMode="select"
+                                        minDate={new Date(2020, 10)}
+                                        openToDate={new Date()}
+                                        required
+                                    />
+                                </Col>
+                            </Form.Group>
+
+                            <hr />
+
+                            {/* Combobox for the vaccin countries in iso-3166-1-alpha-2 */}
+                            <FormGroupISOCountrySelect controlId='formVacCountryInput' title={t('translation:vac-country')}
+                                value={issuerCountryCode}
+                                onChange={(evt: any) => setIssuerCountryCode(evt.target.value)}
+                                required
+                            />
+
+                            {/* certificateIssuer */}
+                            <FormGroupInput controlId='formcertificateIssuerInput' title={t('translation:certificateIssuer')}
+                                value={certificateIssuer}
+                                onChange={(evt: any) => setCertificateIssuer(evt.target.value)}
+                                required
+                                maxLength={80}
+                            />
+                            <hr />
+                        </Card.Body>
+
+                        {/*
+>>>>>>> parent of c8fe6bf (Feat/valueset from service (#102))
                             footer with clear and nex button
                         */}
                             <CardFooter handleCancel={handleCancel} />
